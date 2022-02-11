@@ -2,6 +2,7 @@ class NaiveBayes:
     x = []
     y = []
     a_priori = {}
+    instances = {}
     fitted = False
 
     def fit(self, x, y):
@@ -25,10 +26,15 @@ class NaiveBayes:
             self.a_priori[_class] = self.a_priori[_class] / len(self.y)
 
     def __get_class_instances(self, _class):
+        if _class in self.instances:
+            return self.instances[_class]
+
         instances = []
         for i in range(0, len(self.x)):
             if self.y[i] == _class:
                 instances.append(self.x[i])
+
+        self.instances[_class] = instances
         return instances
 
     def __argmax(self, proba):
@@ -43,25 +49,33 @@ class NaiveBayes:
 
         return argmax
 
-    def predict(self, x):
-        if not self.fitted:
-            raise 'You must fit the model before predicting'
+    def get_classes(self):
+        return list(self.a_priori.keys())
 
-        proba = []
+    def P(self, attr, val, target):
+        instances = self.__get_class_instances(
+            target
+        )
+        value_instances = list(
+            filter(lambda instance: instance[attr] == val, instances)
+        )
+
+        return len(value_instances) / len(instances)
+
+    def get_a_posteriori(self, x):
+        if not self.fitted:
+            raise 'You must fit the model first!'
+
+        a_posteriori = []
         for _class in self.a_priori:
             prod = 1
-            instances = self.__get_class_instances(
-                _class
-            )
 
             for xi in range(0, len(x)):
-                value_instances = list(
-                    filter(lambda instance: instance[xi] == x[xi], instances)
-                )
-                prod *= len(value_instances) / len(instances)
+                prod *= self.P(xi, x[xi], _class)
 
             prod *= self.a_priori[_class]
-            proba.append(prod)
+            a_posteriori.append(prod)
+        return a_posteriori
 
-        print(proba)
-        return self.__argmax(proba)
+    def predict(self, x):
+        return self.__argmax(self.get_a_posteriori(x))

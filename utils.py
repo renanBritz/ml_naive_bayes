@@ -9,9 +9,9 @@ def load_csv(path, delimiter=','):
 
 def split_data(data, target_attr):
     copy = data[:]
-    names = copy[0]
+    cols = copy[0]
     values = copy[1:]
-    target_index = names.index(target_attr)
+    target_index = cols.index(target_attr)
 
     x = []
     y = []
